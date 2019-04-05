@@ -5,6 +5,7 @@
 "use strict"
 
 class EventsNearby {
+  //THIS NEEDS TO BE CONFIRMED
   constructor(title, date, city, state, location, venue, performers, address) {
     this.title = title
     this.date = date
@@ -14,7 +15,7 @@ class EventsNearby {
     this.venue = venue
     this.performers = performers
     this.address = address
-    this.type = type
+    //this.type = type
   }
 }
 
@@ -23,6 +24,7 @@ var cityList = []
 var eventList = []
 var mapCoordinates = []
 var map1;
+var geocoder;
 
 async function getData(url) {
   return fetch(url)
@@ -103,16 +105,16 @@ async function eventsController() {
     for (let b of location) {
       b.trim()
     }
-    var event = new SingleEvent(
+    //NAME WRONG, EVENTS NEARBY AND LOCATION
+    var event = new EventsNearby(
       a.title,
-      a.type,
       a.datetime_local,
-      a.performers,
-      cityState[0],
-      cityState[1],
+      location[0],
+      location[1],
+      a.venue.location,
       a.venue.name,
+      a.performers,
       a.venue.address,
-      a.venue.location
     )
     eventList.push(event)
   }
@@ -171,52 +173,93 @@ async function geography() {
   mapCoordinates.push(longitude)
 }
 
+function updateMap(eventList) {
+  //Clear Markers
+
+  //Update Center
+
+  //
+
+
+}
+
+function addMarker(props) {
+  var marker = new google.maps.Marker({
+    position: {
+      latit: props.location["lat"],
+      longi: props.location["lon"]
+    },
+    map1: map1
+  })
+
+  if (props.performers) {
+    var title = "<h2>" + props.title + "</h2>"
+    var date = "<p><b>Time and Date:</b> " + props.date + "</p>"
+    var venue = "<p><b>Venue:</b> " + props.venue + "</p>"
+    var address = "<p><b>Address:</b> " + props.address + "</p>"
+    var type = "<p><b>" + props.type + "</b></p>"
+    var featuring =
+      "<p><b>Featuring:</b> " + props.performers[0].name + "</p>"
+    var sentence = title + date + venue + address + type + featuring
+    var infoWindow = new google.maps.infoWindow({ content: sentence })
+    marker.addListener("click", function() {
+      infoWindow.open(map1, marker)
+    })
+  }
+}
+
 
 function createMap() {
-  debugger;
-  console.log("reachedcreatemap")
   //https://developers.google.com/maps/documentation/javascript/tutorial
-  let map1 = new google.maps.Map(document.getElementById("map"), {
-    center: {
-      lat: parseFloat(mapCoordinates[0]) || 0, // these will be empty on intital run of map, therefore need to pass a default
-      lng: parseFloat(mapCoordinates[1]) || 0
-    },
-    zoom: 15
-  })
-  let showMap = document.getElementById("map")
-  showMap.onclick = function() {
-    var map1
+  console.log("reachedcreatemap");
+
+
+  //Need to authorize Geocoder EXTRA CREDIT
+  //geocoder = new google.maps.Geocoder();
+  //https://www.wpgmaps.com/documentation/how-to-generate-a-google-maps-geocoding-api-key/
+  // geocoder.geocode({"address": "Houston, TX"}, function(result, status){
+  //   var lat,lng;
+    
+  //   if(status == google.maps.GeocoderStatus.OK){
+  //     lat = results[0].geometry.location.lat();
+  //     lng = results[0].geometry.location.lng();
+  //   } else {
+  //     lat =100;
+  //     lng = 100;
+  //   }
+
+  //   options = {
+  //     center: new google.maps.LatLng(lat, lng),
+  //     zoom: 15
+  //   }
+
+  //   map1 = new google.maps.Map(document.getElementById("map"), options)
+  // });
+
+  let options = {
+    center: new google.maps.LatLng(10, 0),
+    zoom: 10
+  }
+
+  map1 = new google.maps.Map(document.getElementById("map"), options)
+
+  //let showMap = document.getElementById("map")
+
+  //YOU DO NOT WANT TO PUT ON A CLICK EVENT ON THE CONTAINER FOR THE MAP, THEN YOU CANNOT INTERACT WITH THE MAP
+  //showMap.onclick = function() {
+  
+  //https://developers.google.com/maps/documentation/javascript/events
+  //THIS SHOULD BE A BUTTON THAT SAYS SHOW EVENTS
+  map1.addListener("click", function(){
+    console.dir(eventList);
     if (eventList.length == 0) {
       alert("There are no events in the area chosen")
     }
+    //SHOULD NOT BE DONE IN THE CLICK, INSTEAD SHOULD BE DONE WHEN CITY IS UPDATED
     for (var a = 0; a < eventList.length; a++) {
       addMarker(eventList[a])
     }
-    function addMarker(props) {
-      var marker = new google.maps.Marker({
-        position: {
-          latit: props.location["latit"],
-          longi: props.location["longi"]
-        },
-        map1: map1
-      })
-
-      if (props.performers) {
-        var title = "<h2>" + props.title + "</h2>"
-        var date = "<p><b>Time and Date:</b> " + props.date + "</p>"
-        var venue = "<p><b>Venue:</b> " + props.venue + "</p>"
-        var address = "<p><b>Address:</b> " + props.address + "</p>"
-        var type = "<p><b>" + props.type + "</b></p>"
-        var featuring =
-          "<p><b>Featuring:</b> " + props.performers[0].name + "</p>"
-        var sentence = title + date + venue + address + type + featuring
-        var infoWindow = new google.maps.infoWindow({ content: sentence })
-        marker.addListener("click", function() {
-          infoWindow.open(map1, marker)
-        })
-      }
-    }
-  }
+  });
 }
 
 $(document).ready(async function() {
@@ -224,11 +267,13 @@ $(document).ready(async function() {
   await stateController();
   cityController();
   
-  document.getElementById("state").addEventListener("change", (evnt) => cityController());
+  document.getElementById("state").addEventListener("change", async (evnt) => {
+    await cityController();
+    eventsController();
+  });
 
   document.getElementById("city").addEventListener("change", async (evnt) => {
     console.dir(evnt);
-    debugger;
     await eventsController();
 
     //await geography();
@@ -236,3 +281,4 @@ $(document).ready(async function() {
   });
 
 })
+
