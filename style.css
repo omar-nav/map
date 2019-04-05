@@ -1,0 +1,46 @@
+body {
+    margin: 0;
+    padding: 5px;
+}
+
+h1 {
+padding-bottom: 5px;
+text-align: center;
+}
+
+h5 {
+padding-bottom: 5px;
+text-align: center;
+}
+
+select {
+width: 10%;
+}
+
+label {
+position: relative;
+left: 30%;
+}
+
+#state {
+width: 40%;
+margin: auto;
+}
+
+#city {
+width: 40%;
+margin: auto;
+margin-bottom: 20px;
+}
+
+#search {
+display: block;
+margin: auto;
+text-align: center;
+}
+
+.card {
+width: 20%;
+height: 200px;
+float: right;
+}
