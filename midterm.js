@@ -22,6 +22,7 @@ var stateList = []
 var cityList = []
 var eventList = []
 var mapCoordinates = []
+var map1;
 
 async function getData(url) {
   return fetch(url)
@@ -47,14 +48,18 @@ async function stateController() {
   let statesLink =
     "https://gist.githubusercontent.com/mshafrir/2646763/raw/8b0dbb93521f5d6889502305335104218454c2bf/states_hash.json"
   let states = await Promise.all([getData(statesLink)])
-  let i
-  for (i in states[0]) {
-    stateList.push(states[0][i])
-  }
+  //NEEDED STATE CODE NOT ONLY STATE NAME
+  let stateCodes = Object.getOwnPropertyNames(states[0]);
+  // let i
+  // for (i in states[0]) {
+  //   stateList.push(states[0][i])
+  // }
+  stateList = states[0];
   let stateLists = document.getElementById("state")
-  for (let a of stateList) {
+  for (let a of stateCodes) {
     let choice = document.createElement("option")
-    choice.innerHTML = a
+    choice.innerHTML = states[0][a];
+    choice.value = a;
     stateLists.appendChild(choice)
   }
 }
@@ -66,7 +71,7 @@ async function cityController() {
   console.log(cities)
   cityList = []
   for (let a of cities) {
-    for (let b of a[opt]) {
+    for (let b of a[stateList[opt]]) {
       cityList.push(b)
     }
   }
@@ -89,8 +94,9 @@ async function eventsController() {
     "&venue.city=" +
     city +
     client_id
-  let post = await Promise.all([getData(url)])
-  var events = post.events
+  let post = await Promise.all([getData(url)]);
+  //post returns an array, was erroring our events undefined
+  var events = post[0].events
   console.log(events)
   for (let a of events) {
     var location = a.venue.display_location.split(",")
@@ -110,13 +116,28 @@ async function eventsController() {
     )
     eventList.push(event)
   }
-  let showMap = document.getElementById("showMap")
-  showMap.removeAttribute("disabled")
+  //Event List has been set to whatever is returned now we need to:
+  //1. Dump all Other markers
+  //1. Update map Markers
+  //2. Change Center of Map and Zoom to the selected City(Google Maps Search)
+
+  // var marker = new google.maps.Marker({
+  //   position: myLatLng,
+  //   map: map,
+  //   title: 'Hello World!'
+  // });
+
+  //this element did not exist in the html, not sure what its purpose is
+  // let showMap = document.getElementById("showMap")
+  // showMap.removeAttribute("disabled")
 }
 async function geography() {
+  console.log("running GEO");
   let state = document.getElementById("state").value
   let city = document.getElementById("city").value
   let username = "mngonk01"
+  //NOT NECESSARY TO USE ANOTHER API JUST FOR THIS.
+  //GETTING A 401 UNATHORIZED
   let url =
     "http://api.geonames.org/postalCodeLookupJSON?placename=" +
     city +
@@ -139,6 +160,8 @@ async function geography() {
     longitude = eventList[0].location[longi]
   }
 
+
+  //This seems strnage and not a place to use an array, better to save an obj = {lat: 23862.34, lng: 209723.2323}
   if (mapCoordinates.length > 0) {
     while (mapCoordinates.length > 0) {
       mapCoordinates.pop()
@@ -147,12 +170,16 @@ async function geography() {
   mapCoordinates.push(latitude)
   mapCoordinates.push(longitude)
 }
+
+
 function createMap() {
+  debugger;
   console.log("reachedcreatemap")
+  //https://developers.google.com/maps/documentation/javascript/tutorial
   let map1 = new google.maps.Map(document.getElementById("map"), {
     center: {
-      latit: parseFloat(mapCoordinates[0]),
-      longi: parseFloat(mapCoordinates[1])
+      lat: parseFloat(mapCoordinates[0]) || 0, // these will be empty on intital run of map, therefore need to pass a default
+      lng: parseFloat(mapCoordinates[1]) || 0
     },
     zoom: 15
   })
@@ -192,7 +219,20 @@ function createMap() {
   }
 }
 
-$(document).ready(function() {
-  // stateController();
-  weather()
+$(document).ready(async function() {
+  weather();
+  await stateController();
+  cityController();
+  
+  document.getElementById("state").addEventListener("change", (evnt) => cityController());
+
+  document.getElementById("city").addEventListener("change", async (evnt) => {
+    console.dir(evnt);
+    debugger;
+    await eventsController();
+
+    //await geography();
+    //createMap();
+  });
+
 })

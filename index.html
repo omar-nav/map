@@ -10,25 +10,27 @@
     <body>
         <h1>Events Nearby</h1>
         <h5>Please select the city and the state to show the events nearby!</h5>
-        <form>
-            <div class="row">
-                <div class="col">
-                    <label for="state">State</label>
-                    <select name="state" id="state" class="form-control" onchange="cityController()"></select>
-                    <label for="city">City</label>
-                    <select name="city" id="city" class="form-control" onchange="eventsController();geography();createMap();"></select>
-                </div>
-            </div>
-        </form>
         <div class="card bg-light">
             <div class="card-body">
                 <p id="card-body" style="margin-bottom: 0px;"></p>
                 <img height="100px" id="weather-icon">
-            </div>
-            <div class="container">
-                <div id="map"></div>
-            </div>    
+            </div>   
         </div>
+        <form>
+            <div class="row">
+                <div class="col">
+                    <label for="state">State</label>
+                    <select name="state" id="state" class="form-control" ></select>
+                    <!--onchange="cityController();" -->
+                    <label for="city">City</label>
+                    <select name="city" id="city" class="form-control" ></select>
+                    <!-- onchange="eventsController();geography();createMap();"   -->
+                </div>
+            </div>
+        </form>
+        <div class="container" id="map" style="height: 70%; border: 1px solid red;">
+        </div> 
+
         <script src="midterm.js"></script>
         <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaoyYHp3E433yJpj8oeI2VceG29plOZOg&callback=createMap"type="text/javascript"></script>
     </body>
